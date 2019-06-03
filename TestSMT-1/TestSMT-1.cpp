@@ -25,6 +25,9 @@
 //LPWSTR怎样转成string
 #include <atlconv.h>
 
+//getMAC/IP
+#include <Iphlpapi.h> 
+#pragma comment(lib,"Iphlpapi.lib") //需要添加Iphlpapi.lib库
 
 using namespace std;
 
@@ -81,6 +84,21 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	int markP = 0;
 	CString CstrSQL = _T("");
 	string strSQL = "";
+
+	//ip MAC
+	//记录网卡数量
+	int netCardNum = 0;
+	//记录每张网卡上的IP地址数量
+	int IPnumPerNetCard = 0;
+	string strMAC = "";
+	string strIP = "";
+	char mactemp[10];
+	int nRel = 0;
+	unsigned long stSize = 0;
+
+
+
+
 
 	while (true)
 	{		
@@ -161,11 +179,94 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 		{
 			if (1 == markP)
 			{ 
-
-				//string 不限制长度的字符串，以“\0” 作为结尾符。长度可达 4G
 				
-				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
+				//--------------------------------------------------------------------
+				//IP MAC
+				//string 不限制长度的字符串，以“\0” 作为结尾符。长度可达 4G
+				//PIP_ADAPTER_INFO结构体指针存储本机网卡信息
+				PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+				//得到结构体大小,用于GetAdaptersInfo参数
+				stSize = sizeof(IP_ADAPTER_INFO);
+				//调用GetAdaptersInfo函数,填充pIpAdapterInfo指针变量;其中stSize参数既是一个输入量也是一个输出量
+				nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
+
+				if (ERROR_BUFFER_OVERFLOW == nRel)
+				{
+					//如果函数返回的是ERROR_BUFFER_OVERFLOW
+					//则说明GetAdaptersInfo参数传递的内存空间不够,同时其传出stSize,表示需要的空间大小
+					//这也是说明为什么stSize既是一个输入量也是一个输出量
+					//释放原来的内存空间
+					delete pIpAdapterInfo;
+					//重新申请内存空间用来存储所有网卡信息
+					pIpAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[stSize];
+					//再次调用GetAdaptersInfo函数,填充pIpAdapterInfo指针变量
+					nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
+				}
+				if (ERROR_SUCCESS == nRel)
+				{
+					//输出网卡信息
+					//可能有多网卡,因此通过循环去判断
+					while (pIpAdapterInfo)
+					{
+						if (strMAC.size() > 10)
+						{
+							strMAC += "/";
+							//strIP += "/";
+						}
+						if (strIP.size() > 10)
+						{
+							//strMAC += "/";
+							strIP += "/";
+						}
+						//if (strMAC.size) {}
+						for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
+							if (i < pIpAdapterInfo->AddressLength - 1)
+							{
+								//printf("%02X-", pIpAdapterInfo->Address[i]);
+								sprintf_s(mactemp, sizeof(mactemp), "%02X-", pIpAdapterInfo->Address[i]);
+								strMAC += mactemp;
+								//strMAC += "-";
+							}
+							else
+							{
+								//printf("%02X\n", pIpAdapterInfo->Address[i]);
+								sprintf_s(mactemp, sizeof(mactemp), "%02X", pIpAdapterInfo->Address[i]);
+								strMAC += mactemp;
+								strMAC += "";
+							}
+						//cout << "网卡IP地址如下：" << endl;
+						//可能网卡有多IP,因此通过循环去判断
+						IP_ADDR_STRING *pIpAddrString = &(pIpAdapterInfo->IpAddressList);
+						do
+						{
+
+							strIP += pIpAddrString->IpAddress.String;
+
+							pIpAddrString = pIpAddrString->Next;
+						} while (pIpAddrString);
+
+						pIpAdapterInfo = pIpAdapterInfo->Next;
+						//cout << "--------------------------------------------------------------------" << endl;
+					}//endwhile
+
+				}
+				//释放内存空间
+				if (pIpAdapterInfo)
+				{
+					delete pIpAdapterInfo;
+				}
+				//chTime, szBufCPName, strIP.c_str(), strMAC.c_str()
+				if (0 == strIP.length()) { strIP = "未到本机IP"; }
+				if (0 == strMAC.length()) { strIP = "未到本机MAC"; }
+
+				//--------------------------------------------------------------------
+
+
+
+				
+				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PIP,PMac,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
  values('" + strDOCname + "','" + strMachinename + "','"\
++ strIP.c_str() + "','" + strMAC.c_str() + "','"\
 + strUsername + "','" + strPageSize + "','"\
 + strPrintCopies + "','" + strPrintTotalPages + "','"\
 + strPrintColor + "','" + strSubmitted + "','')";
