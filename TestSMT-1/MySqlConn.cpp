@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
 #include "MySqlConn.h"
-
+//#include <fstream>
 
 MySqlConn::MySqlConn()
 {
@@ -98,36 +98,25 @@ void MySqlConn::user_query(string strSQL)
 
 }
 
-void MySqlConn::user_insert()
+void MySqlConn::user_insert(string strSQL)
 {
-	char select_user[255];
-	char query[255];
-	MYSQL_RES *result;
-	result = nullptr;
-	//sprintf(select_user, "select * from user where UserName='%s'", body.userName);
 
-	sprintf_s(select_user,sizeof(select_user), "select * from CarTable where UserName='%s'","test");
+	//ofstream OutFile("d://Test.txt"); //利用构造函数创建txt文本，并且打开该文本
+	//OutFile << strSQL.c_str();  //把字符串内容"This is a Test!"，写入Test.txt文件
+	//OutFile.close();            //关闭Test.txt文件
 
-	cout << "SQLQUERY:" << select_user << endl;
 
-	if (mysql_query(&m_sqlCon, select_user) || !(result = mysql_store_result(&m_sqlCon))) {
-		std::cout << "插入查询失败" << std::endl; 
-	}
-	if (mysql_num_rows(result)) {
-		std::cout << "用户已存在" << std::endl; 
-	}
-	
+	char query[10240];
+	//strSQL = "insert into PrintDB(Pfilename,PMachinename,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark) values('读取位置 0x000000000000002E 时发生访问冲突。_百度搜索','\\DESKTOP-V3CQ8LP','1606-KF','A4','1','1','彩色','2019-05-31 15:47:27','')";
+	sprintf_s(query, sizeof(query), strSQL.c_str() );
 
-	sprintf_s(query, sizeof(query), "insert into CarTable3(CarNumber,UserName) values('%s','%s')", "0000055555","test2");
-	cout << "SQLinSert:" << query << endl;
+	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
+
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "插入数据失败" << std::endl;
 		//return;
 	}
-	std::cout << "插入数据成功,共插入：" << mysql_affected_rows(&m_sqlCon) << "行" << std::endl;
-	//mysql_free_result(result);
-	if (result != NULL)
-		mysql_free_result(result);
+ 
 }
  
 

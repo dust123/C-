@@ -22,6 +22,9 @@
 #pragma comment(lib, "netapi32.lib") 
 #pragma comment(lib, "Advapi32.lib")
 
+//LPWSTR怎样转成string
+#include <atlconv.h>
+
 
 using namespace std;
 
@@ -66,39 +69,47 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	PRINTER_INFO_2* pPrinterInfo = NULL;
 	JOB_INFO_2* pJobInfo = NULL;
 
-	CString strDOCname = _T("");
-	CString strMachinename = _T("");
-	CString strUsername = _T("");
-	CString strPageSize = _T("");
-	CString strPrintCopies = _T("");
-	CString strPrintTotalPages = _T("");
-	CString strPrintColor = _T("");
-	CString strSubmitted = _T("");
+	CString strDOCname			= _T("");
+	CString strMachinename		= _T("");
+	CString strUsername			= _T("");
+	CString strPageSize			= _T("");
+	CString strPrintCopies		= _T("");
+	CString strPrintTotalPages  = _T("");
+	CString strPrintColor		= _T("");
+	CString strSubmitted		= _T("");
 
 	int markP = 0;
-	while (true)
-	{		//printf("in threadFUN\n");
-			//通过调用GetPrinter()函数得到作业数量
+	CString CstrSQL = _T("");
+	string strSQL = "";
 
+	while (true)
+	{		
+		
+		//printf("in threadFUN\n");
+		//通过调用GetPrinter()函数得到作业数量
+		Sleep(200);
 		GetPrinter(printerHandle, 2, NULL, 0, &nByteNeeded);
 		pPrinterInfo = (PRINTER_INFO_2*)malloc(nByteNeeded);
 		GetPrinter(printerHandle, 2, (LPBYTE)pPrinterInfo, nByteNeeded, &nByteUsed);
 
 
-		//通过调用EnumJobs()函数枚举打印任务
-
-		EnumJobs(printerHandle, 0, pPrinterInfo->cJobs, 2, NULL, 0, (LPDWORD)&nByteNeeded, (LPDWORD)&nReturned);
-
-		pJobInfo = (JOB_INFO_2*)malloc(nByteNeeded);
-
-		ZeroMemory(pJobInfo, nByteNeeded);
-
-		EnumJobs(printerHandle, 0, pPrinterInfo->cJobs, 2, (LPBYTE)pJobInfo, nByteNeeded, (LPDWORD)&nByteUsed, (LPDWORD)&nReturned);
-
 
 		//检测当前是否有打印任务
 		if (pPrinterInfo->cJobs != 0)
 		{
+
+
+			//通过调用EnumJobs()函数枚举打印任务
+
+			EnumJobs(printerHandle, 0, pPrinterInfo->cJobs, 2, NULL, 0, (LPDWORD)&nByteNeeded, (LPDWORD)&nReturned);
+
+			pJobInfo = (JOB_INFO_2*)malloc(nByteNeeded);
+
+			ZeroMemory(pJobInfo, nByteNeeded);
+
+			EnumJobs(printerHandle, 0, pPrinterInfo->cJobs, 2, (LPBYTE)pJobInfo, nByteNeeded, (LPDWORD)&nByteUsed, (LPDWORD)&nReturned);
+
+
 			//printf("find job\n");
 			//通过 pJobInfo 即（结构体 JOB_INFO_2 ） 取得打印具体信息
 
@@ -137,62 +148,49 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 			//打印时间
 
-			strSubmitted.Format(L"%d-%2d-%2d %2d:%2d:%2d",
+			strSubmitted.Format(L"%d-%02d-%02d %02d:%02d:%02d",
 				pJobInfo[0].Submitted.wYear, pJobInfo[0].Submitted.wMonth, pJobInfo[0].Submitted.wDay,
 				pJobInfo[0].Submitted.wHour + 8, pJobInfo[0].Submitted.wMinute, pJobInfo[0].Submitted.wSecond);
 
-			//更新打印机状态列表控件
-			//UpdateDataPrinterStatusListCtrl(pJobInfo[0].pDocument, strPageSize,
-			//	strPrintCopies, strPrintColor, strSubmitted);
-			//if( strDOCname != pJobInfo[0].pDocument)
-			//{
-			//cout << "               文件名:  " << strDOCname << endl;
-			//cout << "           打印机器名:  " << strMachinename << endl;
-			//cout << "         打印当前用户:  " << strUsername << endl;
-			//cout << "             纸张类型:  " << strPageSize << endl;
-			//cout << "             打印份数:  " << strPrintCopies << endl;
-			//cout << "正在打印（已打印）页数:  " << strPrintTotalPages << endl;
-			////cout << "正在打印（已打印）页数:  " << pJobInfo[0].PagesPrinted << endl;
-			//cout << "        strPrintColor:  " << strPrintColor << endl;
-			//cout << "             打印时间:  " << strSubmitted << endl;
-			//cout << "         打印处理器名:  " << pJobInfo[0].pPrintProcessor << endl;//用于打印作业的打印处理器的名称 
+		 
 			markP = 1;
-			//}
+		 
 
 		} //end if //检测当前是否有打印任务
 		else
 		{
 			if (1 == markP)
-			{
-				cout << "               文件名:  " << strDOCname << endl;
-				cout << "           打印机器名:  " << strMachinename << endl;
-				cout << "         打印当前用户:  " << strUsername << endl;
-				cout << "             纸张类型:  " << strPageSize << endl;
-				cout << "             打印份数:  " << strPrintCopies << endl;
-				cout << "正在打印（已打印）页数:  " << strPrintTotalPages << endl;
-				//cout << "正在打印（已打印）页数:  " << pJobInfo[0].PagesPrinted << endl;
-				cout << "        strPrintColor:  " << strPrintColor << endl;
-				cout << "             打印时间:  " << strSubmitted << endl;
+			{ 
 
-				Sleep(5000);
+				//string 不限制长度的字符串，以“\0” 作为结尾符。长度可达 4G
+				
+				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
+ values('" + strDOCname + "','" + strMachinename + "','"\
++ strUsername + "','" + strPageSize + "','"\
++ strPrintCopies + "','" + strPrintTotalPages + "','"\
++ strPrintColor + "','" + strSubmitted + "','')";
 
-				string strSQL = "2522671ecd42167894f513e9e281ac0a";
+				USES_CONVERSION;
+				strSQL = W2A(CstrSQL.GetBuffer(0));
+
 				//DTconn.user_query(strSQL);
-				DTconn.user_insert();
+				DTconn.user_insert(strSQL);
 
 
 
 				pPrinterInfo = NULL;
 				pJobInfo = NULL;
 
-				strDOCname = _T("");
-				strMachinename = _T("");
-				strUsername = _T("");
-				strPageSize = _T("");
-				strPrintCopies = _T("");
-				strPrintTotalPages = _T("");
-				strPrintColor = _T("");
-				strSubmitted = _T("");
+				strDOCname			= _T("");
+				strMachinename		= _T("");
+				strUsername			= _T("");
+				strPageSize			= _T("");
+				strPrintCopies		= _T("");
+				strPrintTotalPages  = _T("");
+				strPrintColor		= _T("");
+				strSubmitted		= _T("");
+				CstrSQL				= _T("");
+
 				markP = 0;
 			}
 

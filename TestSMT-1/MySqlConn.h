@@ -36,7 +36,7 @@ public:
 
 	bool initConnection();
 	void user_query(string strSQL);
-	void user_insert();
+	void user_insert(string strSQL);
 	//void user_update();
 	//void user_delete();
 	void FreeConnect();
