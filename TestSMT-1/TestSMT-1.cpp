@@ -1,12 +1,6 @@
 // TestSMT-1.cpp : 定义控制台应用程序的入口点。
 //#include <DSRole.h>
 
-#include <stdio.h>
-#include<iostream> 
-#include <string>    
-#include <cstring>    
-#include <thread>     
-
 #include "stdafx.h"
 //#include "Windows.h"
 
@@ -29,6 +23,23 @@
 #include <Iphlpapi.h> 
 #pragma comment(lib,"Iphlpapi.lib") //需要添加Iphlpapi.lib库
 
+
+//map
+#include <map> 
+//文件路径
+#include <direct.h>
+
+#include <iomanip>
+
+#include <fstream>
+
+#include <stdio.h>
+#include<iostream> 
+#include <string>    
+#include <cstring>    
+#include <thread>     
+
+
 using namespace std;
 
 #define SERVICE_NAME  "srv_demo"
@@ -42,19 +53,93 @@ TCHAR szSvcName[80];
 SC_HANDLE schSCManager;
 SC_HANDLE schService;
 int uaquit;
-FILE* logg;
+//FILE* logg;
 
 DWORD WINAPI srv_core_thread(LPVOID para)
 {
+	//数据库
 	MySqlConn DTconn; 
 	bool isCon;
 	isCon = DTconn.initConnection();
+	
+	//配置文件
+	//--------------------------------------------------------------------------------------------------------
+	//读配置文件
+	map<string, string> mapConfig;
+
+	ifstream configFile;
+	string path = "";
+	string strPrint = ""; 
+
+	char *buffer;
+
+	//也可以将buffer作为输出参数
+	if ((buffer = _getcwd(NULL, 0)) == NULL)
+	{
+		::MessageBox(NULL, "读取配置文件路径出错", "路径错误", 0);
+		exit(-1);
+	}
+	else
+	{
+		printf("%s\n", buffer);
+		path = buffer;
+		free(buffer);
+	}
+
+	path += "\\setting.conf";
+	path = "F:\\VS2015\\VC++\\Threads\\Threads\\setting.conf";
+
+	configFile.open(path.c_str());
+	string str_line;
+	if (configFile.is_open())
+	{
+		//cout << "configFile is_open" << endl;
+		while (!configFile.eof())
+		{
+			getline(configFile, str_line);
+			if (str_line.find('#') == 0) //过滤掉注释信息，即如果首个字符为#就过滤掉这一行
+			{
+				continue;
+			}
+			size_t pos = str_line.find('=');
+			string str_key = str_line.substr(0, pos);
+			string str_value = str_line.substr(pos + 1);
+			//cout << "str_key is:" << str_key << endl;
+			//cout << "str_value is:" << str_value << endl;
+			mapConfig.insert(pair<string, string>(str_key, str_value));
+		}
+
+		//cout << "map is_open" << endl;
+		map<string, string>::iterator iter_configMap;
+		iter_configMap = mapConfig.find(string("print"));
+
+		if (iter_configMap != mapConfig.end())
+		{
+			//cout << "path is:" << iter_configMap->second << endl;
+			strPrint = iter_configMap->second;
+			 
+		}
+
+ 
+
+	}
+	else
+	{
+		::MessageBox(NULL, "读取配置文件出错", "错误", 0);
+		//cout << "Cannot open config file setting.ini, path: ";
+		exit(-1);
+	}
 
 
+	//--------------------------------------------------------------------------------------------------------
+
+	//打印
 	HANDLE printerHandle;   //打印机设备句柄
 
 							//检测打开打印机设备是否成功
-	if (!OpenPrinter(TEXT("Microsoft Print to PDF"), &printerHandle, NULL))
+	//if (!OpenPrinter(TEXT("Microsoft Print to PDF"), &printerHandle, NULL))
+	//Pname = TEXT( strPrint.c_str() );
+	if (!OpenPrinter((LPSTR)strPrint.c_str(), &printerHandle, NULL))
 	{
 		cout << "OpenPrinter fald" << endl;
 	}
@@ -141,21 +226,21 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				strPageSize = _T("B5");
 			}
 			//打印文件名称
-			strDOCname.Format(L"%s", pJobInfo[0].pDocument);
+			strDOCname.Format("%s", pJobInfo[0].pDocument);
 
 			//打印份数
 			//strPrintCopies.Format("%d", pJobInfo[0].pDevMode->dmCopies);
-			strPrintCopies.Format(L"%d", pJobInfo[0].pDevMode->dmCopies);
+			strPrintCopies.Format("%d", pJobInfo[0].pDevMode->dmCopies);
 
 			//打印页数
 
-			strPrintTotalPages.Format(L"%d", pJobInfo[0].TotalPages);
+			strPrintTotalPages.Format("%d", pJobInfo[0].TotalPages);
 			//_ultoa_s(pJobInfo[0].TotalPages, tmpBuf,40, 10);
 			//打印机器名
-			strMachinename.Format(L"%s", pJobInfo[0].pMachineName);
+			strMachinename.Format("%s", pJobInfo[0].pMachineName);
 
 			//打印用户名
-			strUsername.Format(L"%s", pJobInfo[0].pUserName);
+			strUsername.Format("%s", pJobInfo[0].pUserName);
 
 			//打印颜色
 
@@ -166,7 +251,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 			//打印时间
 
-			strSubmitted.Format(L"%d-%02d-%02d %02d:%02d:%02d",
+			strSubmitted.Format("%d-%02d-%02d %02d:%02d:%02d",
 				pJobInfo[0].Submitted.wYear, pJobInfo[0].Submitted.wMonth, pJobInfo[0].Submitted.wDay,
 				pJobInfo[0].Submitted.wHour + 8, pJobInfo[0].Submitted.wMinute, pJobInfo[0].Submitted.wSecond);
 
@@ -258,7 +343,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				//chTime, szBufCPName, strIP.c_str(), strMAC.c_str()
 				if (0 == strIP.length()) { strIP = "未到本机IP"; }
 				if (0 == strMAC.length()) { strIP = "未到本机MAC"; }
-
+				//IP不支持IPV6
 				//--------------------------------------------------------------------
 
 
@@ -272,7 +357,8 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 + strPrintColor + "','" + strSubmitted + "','')";
 
 				USES_CONVERSION;
-				strSQL = W2A(CstrSQL.GetBuffer(0));
+				//strSQL = W2A(CstrSQL.GetBuffer(0));//unicode编码
+				strSQL = CstrSQL.GetBuffer(0);
 
 				//DTconn.user_query(strSQL);
 				DTconn.user_insert(strSQL);
@@ -324,8 +410,8 @@ void WINAPI ServiceHandler(DWORD fdwControl)
 		ServiceStatus.dwWaitHint = 0;
 		uaquit = 1;
 		//add you quit code here
-		if (logg != NULL)
-			fclose(logg);
+		//if (logg != NULL)
+		//	fclose(logg);
 		break;
 	default:
 		return;
@@ -369,12 +455,12 @@ void WINAPI service_main(int argc, char** argv)
 		DWORD nError = GetLastError();
 	}
 	//add your init code here
-	logg = fopen("d:\\test.txt", "w");
+	//logg = fopen("d:\\test.txt", "w");
 	//add your service thread here
 	HANDLE task_handle = CreateThread(NULL, NULL, srv_core_thread, NULL, NULL, NULL);
 	if (task_handle == NULL)
 	{
-		fprintf(logg, "create srv_core_thread failed\n");
+		//fprintf(logg, "create srv_core_thread failed\n");
 	}
 
 	// Initialization complete - report running status 
