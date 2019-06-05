@@ -49,7 +49,7 @@ SERVICE_STATUS_HANDLE hServiceStatusHandle;
 void WINAPI service_main(int argc, char** argv);
 void WINAPI ServiceHandler(DWORD fdwControl);
 
-TCHAR szSvcName[80];
+TCHAR szSvcName[180];
 SC_HANDLE schSCManager;
 SC_HANDLE schService;
 int uaquit;
@@ -71,7 +71,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	string path = "";
 	string strPrint = ""; 
 
-	char *buffer;
+	char *buffer=NULL;
 
 	//也可以将buffer作为输出参数
 	if ((buffer = _getcwd(NULL, 0)) == NULL)
@@ -81,14 +81,18 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	}
 	else
 	{
-		printf("%s\n", buffer);
 		path = buffer;
 		free(buffer);
+		//ofstream OutFile("d://Test.txt"); //利用构造函数创建txt文本，并且打开该文本
+		//OutFile << path.c_str();  //把字符串内容"This is a Test!"，写入Test.txt文件
+		//OutFile.close();            //关闭Test.txt文件
+		//printf("%s\n", buffer);
+
 	}
 
-	path += "\\setting.conf";
-	path = "F:\\VS2015\\VC++\\Threads\\Threads\\setting.conf";
-
+	path += "\\Psetting.conf";
+	//path = "F:\\VS2015\\VC++\\Threads\\Threads\\setting.conf";
+	 
 	configFile.open(path.c_str());
 	string str_line;
 	if (configFile.is_open())
@@ -503,14 +507,32 @@ void WINAPI service_main(int argc, char** argv)
 //do not change main function
 int main(int argc, const char *argv[])
 {
+	
+	//ofstream OutFile("D:\\test1.txt"); //利用构造函数创建txt文本，并且打开该文本
+	//OutFile << argv;  //把字符串内容"This is a Test!"，写入Test.txt文件
+	 
+
+	FILE* fopentest = fopen("D:\\test1.txt", "a");
+	for (int i = 0; i < argc; ++i)
+	{
+		fprintf(fopentest, "main: %s\n\r", argv[i]);
+		//OutFile << argv[i] << "\r\n";
+	}
+	fclose(fopentest);
+	
+	//OutFile.close();
+
+ 
+
+	//服务规则建立
 	SERVICE_TABLE_ENTRY ServiceTable[2];
 
 	ServiceTable[0].lpServiceName = _T(SERVICE_NAME);
 	ServiceTable[0].lpServiceProc = (LPSERVICE_MAIN_FUNCTION)service_main;
-
 	//SERVICE_TABLE_ENTRY结构数组要求最后一个成员组都为NULL，我们称之为“哨兵”（所有值都为NULL），表示该服务表末尾。
 	//一个服务启动后，马上调用StartServiceCtrlDispatcher()通知服务控制程序服务正在执行，并提供服务函数的地址。
 	//StartServiceCtrlDispatcher()只需要一个至少有两SERVICE_TABLE_ENTRY结构的数组，它为每个服务启动一个线程，一直等到它们结束才返回。
+
 	ServiceTable[1].lpServiceName = NULL;
 	ServiceTable[1].lpServiceProc = NULL;
 	// 启动服务的控制分派机线程

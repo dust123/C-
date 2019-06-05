@@ -101,9 +101,9 @@ void MySqlConn::user_query(string strSQL)
 void MySqlConn::user_insert(string strSQL)
 {
 
-	ofstream OutFile("d://Test.txt"); //利用构造函数创建txt文本，并且打开该文本
-	OutFile << strSQL.c_str();  //把字符串内容"This is a Test!"，写入Test.txt文件
-	OutFile.close();            //关闭Test.txt文件
+	//ofstream OutFile("d://Test.txt"); //利用构造函数创建txt文本，并且打开该文本
+	//OutFile << strSQL.c_str();  //把字符串内容"This is a Test!"，写入Test.txt文件
+	//OutFile.close();            //关闭Test.txt文件
 
 
 	char query[10240];
