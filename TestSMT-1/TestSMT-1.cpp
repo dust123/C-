@@ -136,7 +136,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	//打印
 	HANDLE printerHandle;   //打印机设备句柄
 
-							//检测打开打印机设备是否成功
+	//检测打开打印机设备是否成功
 	//if (!OpenPrinter(TEXT("Microsoft Print to PDF"), &printerHandle, NULL))
 	//Pname = TEXT( strPrint.c_str() );
 	if (!OpenPrinter((LPSTR)strPrint.c_str(), &printerHandle, NULL))
@@ -174,14 +174,16 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	//记录网卡数量
 	int netCardNum = 0;
 	//记录每张网卡上的IP地址数量
-	int IPnumPerNetCard = 0;
+	//int IPnumPerNetCard = 0;
 	string strMAC = "";
 	string strIP = "";
 	char mactemp[10];
 	int nRel = 0;
 	unsigned long stSize = 0;
 
-
+	//时间
+	char chTime[40] = { 0 };
+	SYSTEMTIME sdt = { 0 };
 
 
 
@@ -251,9 +253,9 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 			//打印时间
 
-			strSubmitted.Format("%d-%02d-%02d %02d:%02d:%02d",
-				pJobInfo[0].Submitted.wYear, pJobInfo[0].Submitted.wMonth, pJobInfo[0].Submitted.wDay,
-				pJobInfo[0].Submitted.wHour + 8, pJobInfo[0].Submitted.wMinute, pJobInfo[0].Submitted.wSecond);
+			//strSubmitted.Format("%d-%02d-%02d %02d:%02d:%02d",
+			//	pJobInfo[0].Submitted.wYear, pJobInfo[0].Submitted.wMonth, pJobInfo[0].Submitted.wDay,
+			//	pJobInfo[0].Submitted.wHour + 8, pJobInfo[0].Submitted.wMinute, pJobInfo[0].Submitted.wSecond);
 
 		 
 			markP = 1;
@@ -267,6 +269,8 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				
 				//--------------------------------------------------------------------
 				//IP MAC
+				strIP = "";
+				strMAC = "";
 				//string 不限制长度的字符串，以“\0” 作为结尾符。长度可达 4G
 				//PIP_ADAPTER_INFO结构体指针存储本机网卡信息
 				PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
@@ -346,7 +350,23 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				//IP不支持IPV6
 				//--------------------------------------------------------------------
 
-
+				//-----------------------------------------
+				//时间
+				/*取时间*/
+				//使用系统时间，打印的时间有时不准确
+				GetLocalTime(&sdt);
+				sprintf_s(chTime, sizeof(chTime), "%d-%02d-%02d %02d:%02d:%02d",
+					sdt.wYear,
+					sdt.wMonth,
+					sdt.wDay,
+					sdt.wHour,
+					sdt.wMinute,
+					sdt.wSecond);
+				if (0 == strlen(chTime))
+				{
+					strcpy_s(chTime, "2055-01-01 01:01:01"); //string 到char[] chTime = "2019-03-26 12:44:08";
+				}
+				//-----------------------------------------
 
 				
 				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PIP,PMac,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
@@ -354,7 +374,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 + strIP.c_str() + "','" + strMAC.c_str() + "','"\
 + strUsername + "','" + strPageSize + "','"\
 + strPrintCopies + "','" + strPrintTotalPages + "','"\
-+ strPrintColor + "','" + strSubmitted + "','')";
++ strPrintColor + "','" + chTime + "','')";
 
 				USES_CONVERSION;
 				//strSQL = W2A(CstrSQL.GetBuffer(0));//unicode编码
@@ -364,7 +384,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				DTconn.user_insert(strSQL);
 
 
-
+		 
 				pPrinterInfo = NULL;
 				pJobInfo = NULL;
 
@@ -377,8 +397,15 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				strPrintColor		= _T("");
 				strSubmitted		= _T("");
 				CstrSQL				= _T("");
-
-				markP = 0;
+				strSQL              = "";
+				strIP               = "";
+				strMAC              = "";
+				memset(chTime, 0, sizeof(chTime));
+				memset(mactemp, 0, sizeof(mactemp));
+				nRel   = 0;
+				stSize = 0;
+				sdt    = { 0 };
+				markP  = 0;
 			}
 
 		}
