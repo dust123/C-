@@ -247,9 +247,9 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 			//打印颜色
 
 			if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_COLOR)
-				strPrintColor = _T("彩色");
-			else if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_MONOCHROME)
 				strPrintColor = _T("黑白");
+			else if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_MONOCHROME)
+				strPrintColor = _T("彩色");
 
 			//打印时间
 
