@@ -251,9 +251,9 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 			//打印颜色
 
 			if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_COLOR)
-				strPrintColor = _T("黑白");
-			else if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_MONOCHROME)
 				strPrintColor = _T("彩色");
+			else if (pJobInfo[0].pDevMode->dmColor == DMCOLOR_MONOCHROME)
+				strPrintColor = _T("黑白");
 
 			//打印时间
 
@@ -512,13 +512,13 @@ int main(int argc, const char *argv[])
 	//OutFile << argv;  //把字符串内容"This is a Test!"，写入Test.txt文件
 	 
 
-	FILE* fopentest = fopen("D:\\test1.txt", "a");
-	for (int i = 0; i < argc; ++i)
-	{
-		fprintf(fopentest, "main: %s\n\r", argv[i]);
-		//OutFile << argv[i] << "\r\n";
-	}
-	fclose(fopentest);
+	//FILE* fopentest = fopen("D:\\test1.txt", "a");
+	//for (int i = 0; i < argc; ++i)
+	//{
+	//	fprintf(fopentest, "main: %s\n\r", argv[i]);
+	//	//OutFile << argv[i] << "\r\n";
+	//}
+	//fclose(fopentest);
 	
 	//OutFile.close();
 
