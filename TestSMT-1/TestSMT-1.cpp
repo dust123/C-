@@ -55,6 +55,20 @@ SC_HANDLE schService;
 int uaquit;
 //FILE* logg;
 
+//--------------------------------------------
+//取路径
+string GetProgramDir()
+{
+	TCHAR exeFullPath[MAX_PATH]; // Full path  
+	GetModuleFileName(NULL, exeFullPath, MAX_PATH);
+	string strPath = __TEXT("");
+	strPath = exeFullPath;    // Get full path of the file  
+	size_t pos = strPath.find_last_of(L'\\', strPath.length());
+
+	return strPath.substr(0, pos);  // Return the directory without the file name  
+}
+
+
 DWORD WINAPI srv_core_thread(LPVOID para)
 {
 	//数据库
@@ -89,6 +103,19 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 		//printf("%s\n", buffer);
 
 	}
+
+	size_t pos = path.find("system32");
+
+	if ((-1 == pos) || (-1 == pos))
+	{
+		cout << "登录OK" << std::endl;
+	}
+	else
+	{
+		path = GetProgramDir();
+	}
+
+	
 
 	path += "\\Psetting.conf";
 	//path = "F:\\VS2015\\VC++\\Threads\\Threads\\setting.conf";
