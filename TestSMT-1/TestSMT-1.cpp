@@ -6,6 +6,7 @@
 
 #include "MySqlConn.h"
 
+#define SERVICE_NAME "PrintT"
 
 #include <afxwin.h> 
 
@@ -39,10 +40,10 @@
 #include <cstring>    
 #include <thread>     
 
-
+#pragma comment(lib,"User32.lib")
 using namespace std;
 
-#define SERVICE_NAME  "srv_demo"
+
 
 SERVICE_STATUS ServiceStatus;
 SERVICE_STATUS_HANDLE hServiceStatusHandle;
@@ -399,6 +400,12 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				}
 				//-----------------------------------------
 
+
+				DTconn.user_query(strMAC);
+				if ("on" == DTconn.strPprintMark)
+				{
+					strUsername = DTconn.strPUserName.c_str();
+				}
 				
 				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PIP,PMac,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
  values('" + strDOCname + "','" + strMachinename + "','"\
@@ -411,7 +418,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				//strSQL = W2A(CstrSQL.GetBuffer(0));//unicode±àÂë
 				strSQL = CstrSQL.GetBuffer(0);
 
-				//DTconn.user_query(strSQL);
+				
 				DTconn.user_insert(strSQL);
 
 

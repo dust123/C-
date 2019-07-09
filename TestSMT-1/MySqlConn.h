@@ -31,6 +31,12 @@ private:
 	const int port = 3306;
 	int a; 
 public:
+	string strPUserName;
+	string strPUserNickName;
+	string strPCarNumber;
+	string strPprintMark;
+
+
 	//初始化mysql  
 	MYSQL m_sqlCon;  //连接mysql，数据库  
 

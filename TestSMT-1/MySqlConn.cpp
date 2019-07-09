@@ -34,67 +34,46 @@ bool MySqlConn::initConnection()
 	}
 }
 
-void MySqlConn::user_query(string strSQL)
+void MySqlConn::user_query(string strMAC)
 {
-	char query[255];
-	//string strsql;
-	//strsql = "select * from CarTable where CarNumber=MD5(\"�_Z&";
-	//strsql += strSQL.c_str();
-	//strsql += "l^_\")";
+	char query[255]; 
 
-	//cout << "strsql is:" << strsql.c_str() << endl;
+	sprintf_s(query, sizeof(query), "select * from PrintUser where MachineMac=\"%s\" ", strMAC.c_str() );
+	mysql_query(&m_sqlCon, "SET NAMES GB2312");
 
-	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=\"%s\" ",  strSQL.c_str() );
-	//char query[255] = "select * from CarTable where CarNumber = MD5(\"_Z&0005983205l^_\")";
-	//::MessageBoxA(NULL, query, query, 0);
-	cout <<"query is:" << query << endl;
-	//mysql_query(&m_sqlCon, "SET NAMES UTF8"); 
-	//mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
-	mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
-	if (mysql_query(&m_sqlCon, query))
-	{
-
-		cout << "查询失败  Fale" << std::endl;
-		return;
-	}
-	cout << "查询成功 OK" << std::endl;
+	 
+	MYSQL_ROW sql_row;
 	MYSQL_RES *result;//获得结果集
+
+	if (mysql_query(&m_sqlCon, query)) {
+		std::cout << "查询失败" << std::endl;
+		::MessageBox(NULL, "查询失败", "qq", 0);
+	}
+	else
+	{
+		std::cout << "查询成功" << std::endl;
+		//::MessageBox(NULL, "查询成功", "qq", 0);
+	}
 	result = mysql_store_result(&m_sqlCon);
 	if (result) {
-		my_ulonglong row_num;
-	    int col_num;
+		my_ulonglong  row_num;
+		int col_num;
 		row_num = mysql_num_rows(result);
-		col_num = mysql_num_fields(result);
-		//std::cout << "共有" << row_num << "条数据，以下为其详细内容：" << std::endl;
-		//MYSQL_FIELD *fd;
-		//while (fd = mysql_fetch_field(result)) {
-		//	std::cout << fd->name << "\t";
-		//}
-		//std::cout << std::endl;
-		cout <<"col_num: "<< col_num <<"    row_num:"<< row_num << std::endl;
-
-		MYSQL_ROW sql_row;
-		MYSQL_FIELD *field; 
+		col_num = mysql_num_fields(result); 
 		if (1 == row_num)
 		{
-			sql_row = mysql_fetch_row(result); // 获取具体的数据
-			field = mysql_fetch_field(result); //获取列名
-			//printf("Field %u is %s/n", 0, fields[0]);
-			//strcpy(column[i], field->UserName);
-			cout << "UserName is： " <<  sql_row[1] << endl;
-			cout << "用户名2： "	 <<  sql_row[2] << endl;
-			cout << "用户名3： "     <<  sql_row[3] << endl;
+			sql_row = mysql_fetch_row(result);
+
+			strPCarNumber		= sql_row[4];
+			strPUserNickName	= sql_row[5];
+			strPUserName	    = sql_row[6];
+			strPprintMark       = sql_row[8];
+
 		}
-		//while (sql_row = mysql_fetch_row(result)) {
-		//	for (int i = 0; i < col_num; i++) {
-		//		if (sql_row[i] == NULL) std::cout << "NULL\t";
-		//		else std::cout << sql_row[i] << "\t";
-		//	}
-		//	std::cout << std::endl;
-		//}
 	}
+ 
 	if (result != NULL)
-		mysql_free_result(result); 
+		mysql_free_result(result);
 
 }
 
