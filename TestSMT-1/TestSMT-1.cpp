@@ -8,8 +8,7 @@
 
 #define SERVICE_NAME "PrintT"
 
-#include <afxwin.h> 
-
+#include <afxwin.h>  
 
 #include <winspool.h>
 
@@ -72,6 +71,10 @@ string GetProgramDir()
 
 DWORD WINAPI srv_core_thread(LPVOID para)
 {
+	//FILE *fp;
+	//fopen_s(&fp, "e:\\debug.txt", "a+");
+	//fclose(fp);
+
 	//数据库
 	MySqlConn DTconn; 
 	bool isCon;
@@ -84,6 +87,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 	ifstream configFile;
 	string path = "";
+	string FilePath = "";
 	string strPrint = ""; 
 
 	char *buffer=NULL;
@@ -105,7 +109,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 	}
 
-	size_t pos = path.find("system32");
+	size_t pos = path.find("sys");
 
 	if ((-1 == pos) || (-1 == pos))
 	{
@@ -117,10 +121,15 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 	}
 
 	
-
+	FilePath = path;
 	path += "\\Psetting.conf";
 	//path = "F:\\VS2015\\VC++\\Threads\\Threads\\setting.conf";
-	 
+ 
+	//fopen_s(&fp, "e:\\debug.txt", "a+");
+	//_ftprintf(fp, _T("%s\n"), path.c_str());
+	//fclose(fp);
+	
+
 	configFile.open(path.c_str());
 	string str_line;
 	if (configFile.is_open())
@@ -229,7 +238,10 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 		pPrinterInfo = (PRINTER_INFO_2*)malloc(nByteNeeded);
 		GetPrinter(printerHandle, 2, (LPBYTE)pPrinterInfo, nByteNeeded, &nByteUsed);
 
-
+		
+		//fopen_s(&fp, "e:\\debug.txt", "a+");
+		//_ftprintf(fp, _T("%s\n"), "in while");
+		//fclose(fp);
 
 		//检测当前是否有打印任务
 		if (pPrinterInfo->cJobs != 0)
@@ -298,6 +310,10 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 		{
 			if (1 == markP)
 			{ 
+				
+				//fopen_s(&fp, "e:\\debug.txt", "a+");
+				//_ftprintf(fp, _T("%s\n"), "in if (1 == markP)");
+				//fclose(fp);
 				
 				//--------------------------------------------------------------------
 				//IP MAC
@@ -400,6 +416,9 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				}
 				//-----------------------------------------
 
+				//fopen_s(&fp, "e:\\debug.txt", "a+");
+				//_ftprintf(fp, _T("%s\n"), "befor DTconn.user_query(strMAC) ");
+				//fclose(fp);
 
 				DTconn.user_query(strMAC);
 				if ("on" == DTconn.strPprintMark)
@@ -407,6 +426,10 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 					strUsername = DTconn.strPUserName.c_str();
 				}
 				
+				//fopen_s(&fp, "e:\\debug.txt", "a+");
+				//_ftprintf(fp, _T("%s\n"), "after DTconn.user_query(strMAC) ");
+				//fclose(fp);
+
 				CstrSQL = "insert into PrintDB(Pfilename,PMachinename,PIP,PMac,PUserName,PpageSize ,PCopies ,Ppage,PColor,Ptime ,Premark)\
  values('" + strDOCname + "','" + strMachinename + "','"\
 + strIP.c_str() + "','" + strMAC.c_str() + "','"\
@@ -417,8 +440,23 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 				USES_CONVERSION;
 				//strSQL = W2A(CstrSQL.GetBuffer(0));//unicode编码
 				strSQL = CstrSQL.GetBuffer(0);
-
 				
+				
+				//fopen_s(&fp, "e:\\debug.txt", "a+");
+				//_ftprintf(fp, _T("%s\n"), strSQL.c_str());
+				//fclose(fp);
+
+
+				//FilePath = GetProgramDir();
+				//FilePath = FilePath + "\\Debug.txt";
+				//ofstream f1(FilePath);
+				//if (f1)
+				//{
+				//	f1 << strSQL.c_str() << endl;
+				//	f1.close();
+				//}
+
+
 				DTconn.user_insert(strSQL);
 
 
@@ -453,7 +491,7 @@ DWORD WINAPI srv_core_thread(LPVOID para)
 
 	} //end while
 
-
+	
 	free(pPrinterInfo);
 	//关闭打印机设备
 	ClosePrinter(printerHandle);

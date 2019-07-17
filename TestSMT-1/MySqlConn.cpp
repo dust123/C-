@@ -41,37 +41,66 @@ void MySqlConn::user_query(string strMAC)
 	sprintf_s(query, sizeof(query), "select * from PrintUser where MachineMac=\"%s\" ", strMAC.c_str() );
 	mysql_query(&m_sqlCon, "SET NAMES GB2312");
 
+	//FILE *fp;
+	//fopen_s(&fp, "e:\\debug.txt", "a+");
+	//_ftprintf(fp, _T("%s\n"), query);
+	//fclose(fp);
 	 
 	MYSQL_ROW sql_row;
 	MYSQL_RES *result;//获得结果集
 
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "查询失败" << std::endl;
-		::MessageBox(NULL, "查询失败", "qq", 0);
+		//::MessageBox(NULL, "查询失败", "qq", 0);
+		//fopen_s(&fp, "e:\\debug.txt", "a+");
+		//_ftprintf(fp, _T("%s\n"), "查询失败");
+		//fclose(fp);
 	}
 	else
 	{
 		std::cout << "查询成功" << std::endl;
 		//::MessageBox(NULL, "查询成功", "qq", 0);
+		//fopen_s(&fp, "e:\\debug.txt", "a+");
+		//_ftprintf(fp, _T("%s\n"), "查询成功");
+		//fclose(fp);
 	}
 	result = mysql_store_result(&m_sqlCon);
-	if (result) {
+	if (result) 
+	{
 		my_ulonglong  row_num;
 		int col_num;
 		row_num = mysql_num_rows(result);
-		col_num = mysql_num_fields(result); 
+		col_num = mysql_num_fields(result);
+
+		//fopen_s(&fp, "e:\\debug.txt", "a+");
+		//_ftprintf(fp, _T("if (result) 查到返回值为：  %d\n"), (int)row_num);
+		//fclose(fp);
+
 		if (1 == row_num)
 		{
+
+			//fopen_s(&fp, "e:\\debug.txt", "a+");
+			//_ftprintf(fp, _T("if (1 == row_num)\n"));
+			//fclose(fp);
+
 			sql_row = mysql_fetch_row(result);
 
-			strPCarNumber		= sql_row[4];
-			strPUserNickName	= sql_row[5];
-			strPUserName	    = sql_row[6];
-			strPprintMark       = sql_row[8];
-
+			//if (sql_row[1] == NULL) { GetUserPW = ""; }
+			//if (sql_row[2] == NULL) { strPCarNumber = ""; }
+			//if (sql_row[3] == NULL) { strPUserNickName = ""; }
+			if (sql_row[4] == NULL) { strPCarNumber = ""; }
+			if (sql_row[5] == NULL) { strPUserNickName = ""; }
+			if (sql_row[6] == NULL) { strPUserName = ""; }
+			//if (sql_row[7] == NULL) { strPCarNumber = ""; }
+			if (sql_row[8] == NULL) { strPprintMark = ""; }
+			 
 		}
 	}
  
+	//fopen_s(&fp, "e:\\debug.txt", "a+");
+	//_ftprintf(fp, _T("%s\n"), strPCarNumber.c_str());
+	//fclose(fp);
+
 	if (result != NULL)
 		mysql_free_result(result);
 
