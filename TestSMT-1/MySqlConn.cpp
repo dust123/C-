@@ -88,11 +88,35 @@ void MySqlConn::user_query(string strMAC)
 			//if (sql_row[1] == NULL) { GetUserPW = ""; }
 			//if (sql_row[2] == NULL) { strPCarNumber = ""; }
 			//if (sql_row[3] == NULL) { strPUserNickName = ""; }
-			if (sql_row[4] == NULL) { strPCarNumber = ""; }
-			if (sql_row[5] == NULL) { strPUserNickName = ""; }
-			if (sql_row[6] == NULL) { strPUserName = ""; }
+			if (sql_row[4] == NULL) 
+			{ 
+				strPCarNumber = ""; 
+			}
+			else {
+				strPCarNumber = sql_row[4];
+			}
+			if (sql_row[5] == NULL) 
+			{
+				strPUserNickName = "";
+			}
+			else {
+				strPUserNickName = sql_row[5];
+			}
+			if (sql_row[6] == NULL) 
+			{
+				strPUserName = "";
+			}
+			else {
+				strPUserName = sql_row[6];
+			}
 			//if (sql_row[7] == NULL) { strPCarNumber = ""; }
-			if (sql_row[8] == NULL) { strPprintMark = ""; }
+			if (sql_row[8] == NULL) 
+			{
+				strPprintMark = "";
+			}
+			else {
+				strPprintMark = sql_row[8];
+			}
 			 
 		}
 	}
